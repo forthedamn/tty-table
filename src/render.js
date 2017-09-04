@@ -12,11 +12,11 @@ Render.stringifyData = function(Config,data){
         header : [],
         body : [],
         footer : []
-      },
-      output = '',
-      marginLeft = Array(Config.marginLeft + 1).join('\ '),
-      borderStyle = Config.borderCharacters[Config.borderStyle],
-      borders = [];
+      };
+  let output = '';
+  let marginLeft = Array(Config.marginLeft + 1).join('\ ');
+  let borderStyle = Config.borderCharacters[Config.borderStyle];
+  let borders = [];
 
   //because automattic/cli-table syntax infers table type based on 
   //how rows are passed (array of arrays, objects, etc)
@@ -68,16 +68,13 @@ Render.stringifyData = function(Config,data){
   //top horizontal border
   output += borders[0];
 
-  //rows
-  let row;
-
   //for each section (header,body,footer)
   Object.keys(sections).forEach(function(p,i){
     
     //for each row in the section
     while(sections[p].length){
       
-      row = sections[p].shift();
+      let row = sections[p].shift();
       
       //if(row.length === 0) {break}
 
