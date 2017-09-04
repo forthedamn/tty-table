@@ -21,7 +21,7 @@ let Config;
 * @param {string} header.column.headerColor      - default: terminal's default color
 * @param {number} header.column.marginLeft      - default: 0
 * @param {number} header.column.marginTop        - default: 0      
-* @param {number} header.column.maxWidth        - default: 20 
+* @param {number} header.column.width        - default: 20 
 * @param {number} header.column.paddingBottom    - default: 0
 * @param {number} header.column.paddingLeft      - default: 0
 * @param {number} header.column.paddingRight    - default: 0
