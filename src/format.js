@@ -177,32 +177,63 @@ Format.handleLatinChars = function(string,cellOptions,innerWidth){
   return outstring;
 }
 
-Format.getColumnWidths = function(config,rows){
+/**
+ * Returns the widest cell give a collection of rows
+ *
+ * @param array rows
+ * @param integer columnIndex 
+ * @returns integer
+ */
+Format.inferColumnWidth = function(columnOptions,rows,columnIndex){
   
-  let widths = [];
-  let source; //source of columns  
+  let iterable;
   
-  //check widths on header settings if exists
-  if(config.table.header[0] && config.table.header[0].length > 0){
-    source = config.table.header[0];
+  //add a row that contains the header value, so we use that width too
+  if(typeof columnOptions === 'object' && columnOptions.value){
+    iterable = rows.slice();
+    let z = new Array(iterable[0].length); //create a new empty row
+    z[columnIndex] = columnOptions.value.toString();
+    iterable.push(z);
   }
-  else if(rows.length > 0){
-    source = rows[0];
-  }
-  else {
-    return [];
+  //no header value, just use rows to derive max width
+  else{
+    iterable = rows;
   }
   
-  widths = source.map(function(cell){
-    if(typeof cell === 'object' && typeof cell.width !=='undefined'){
-      return cell.width;
-    }
-    else{
-      return config.width;
+  let widest = 0; 
+  iterable.forEach(function(row){
+    if(row[columnIndex] && row[columnIndex].toString().length > widest){
+      //widest = row[columnIndex].toString().length;
+      widest = Wcwidth(row[columnIndex].toString());
+      //add 1 for the column separator
+      widest = widest + 1;
     }
   });
+  return widest;
+}
 
-  //check to make sure widths will fit the current display, or resize.
+Format.getColumnWidths = function(config,rows){
+
+  //iterate over the header if we have it, iterate over the first row 
+  //if we do not (to step through the correct number of columns)
+  let iterable = (config.table.header[0] && config.table.header[0].length > 0) 
+    ? config.table.header[0] : rows[0];
+
+  let widths = iterable.map(function(column,columnIndex){ //iterate through column settings
+    switch(true){
+      case(typeof column === 'object' && column.width): //specified in header config
+        return column.width;
+      case(config.width && config.width !== null): //config.width is null by default
+        return config.width;
+      default:
+        //pass empty object if no column options exist in header
+        let columnOptions = (config.table.header[0][columnIndex])   
+          ? config.table.header[0][columnIndex] : {};
+        return Format.inferColumnWidth(columnOptions,rows,columnIndex);
+    }
+  });
+  
+  //calculate sum of all column widths (including marginLeft)
   let totalWidth = widths.reduce(function(prev,curr){
     return prev + curr;
   });
@@ -210,6 +241,7 @@ Format.getColumnWidths = function(config,rows){
   //add marginLeft to totalWidth
   totalWidth += config.marginLeft;
 
+  //if sum of all widths exceeds viewport, resize each proportionately to fit
   //check process exists in case we are in browser
   if(process && process.stdout && totalWidth > process.stdout.columns){
     //recalculate proportionately to fit size
